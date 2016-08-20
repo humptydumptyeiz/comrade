@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Comrade</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/messages.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <label>Host</label>
+        </div>
+        <div class="col-md-6">
+            <input type="text" id="host" name="host" value="localhost">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <label>Username</label>
+        </div>
+        <div class="col-md-6">
+            <input type="text" id="username" name="username">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <label>Password</label>
+        </div>
+        <div class="col-md-6">
+            <input type="password" id="password" name="password">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <label>Command</label>
+        </div>
+        <div class="col-md-6">
+            <input type="text" id="exec_command" name="exec_command" value="ls">
+        </div>
+    </div>
+    <div class="row">
+        <input type="submit" value="Submit" id="submit">
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <label>WS Connection Status</label>
+        </div>
+        <div class="col-md-3" id="ws_status">Disconnected</div>
+    </div>
+    <div class="row">
+        <div class="col-md-12" id="ws_message"></div>
+    </div>
+</div>
+<script src="js/jquery-3.0.0.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script>
+
+    $("#submit").on("click", function(){
+        $("#ws_message").empty();
+        var payload = {};
+        payload.username = $("#username").val();
+        payload.password = $("#password").val();
+        payload.host = $("#host").val();
+        payload.command = $("#exec_command").val();
+
+        console.log(payload);
+        $.ajax({
+            url: "http://127.0.0.1:9996/command",
+            type: "POST",
+            dataType: "json",
+            data: JSON.stringify(payload),
+            success: function(json){
+                console.log(json);
+            }
+        });
+    });
+
+    window.onload = function(){
+        var sock = new WebSocket("ws://127.0.0.1:9999/stream");
+
+        sock.onopen = function(){
+            document.getElementById("ws_status").innerHTML = "Connected";
+        };
+
+        sock.onclose = function(e){
+            sock = null;
+            document.getElementById("ws_status").innerHTML = "Disconnected";
+        };
+
+        sock.onmessage = function(e){
+            if(typeof e.data === "string"){
+                console.log(e.data);
+                var data = e.data.split("\n");
+                data.forEach(function(d){
+                    console.log(d);
+                    $("#ws_message").html($("#ws_message").html() + "<br/> ~~~~~~~~~~~~~~~ <br/>" + d);
+                    $("#ws_message").scrollTop($("#ws_message").prop("scrollHeight"));
+                });
+            }
+            else{
+                alert('Corrupt data');
+            }
+
+        };
+
+    };
+</script>
+</body>
+
+
+</html>

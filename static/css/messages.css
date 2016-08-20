@@ -1,0 +1,6 @@
+#ws_message{
+        border: 1px solid blue;
+        height: 500px;
+        width: 1000px;
+        overflow-y: scroll;
+}
